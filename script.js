@@ -56,6 +56,26 @@ function processArray(inputArray) {
     return resultArray;
 }
 
+function musica(spikes) {
+    const smallest = Math.min(...spikes);
+    const biggest = Math.max(...spikes);
+    intervalo = (biggest-smallest)/spikes.length;
+    // Create an AudioContext
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    // Create an oscillator node
+    const oscillator = audioContext.createOscillator();
+    // Set the frequency based on the interval value (adjust this as needed)
+    const frequency = 440 + intervalo * 100; // Example: Adjust frequency based on interval
+    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+    // Connect the oscillator to the audio output
+    oscillator.connect(audioContext.destination);
+    // Start the oscillator to play audio
+    oscillator.start();
+    // Stop the oscillator after a short duration (adjust as needed)
+    oscillator.stop(audioContext.currentTime + 0.1); // Example: Stop after 0.1 seconds
+    console.log(`Playing audio with interval: ${intervalo}`);
+}
+
 // Function to process each video frame
 function processFrame() {
     counter++;
@@ -141,6 +161,9 @@ fileInput.addEventListener('change', () => {
             promH.textContent = `Average Hue: ${huePerFrame.reduce((a, b) => a + b, 0) / huePerFrame.length}`;
             promS.textContent = `Average Saturation: ${saturationPerFrame.reduce((a, b) => a + b, 0) / saturationPerFrame.length}`;
             promB.textContent = `Average Brightness: ${brightnessPerFrame.reduce((a, b) => a + b, 0) / brightnessPerFrame.length}`;
+            musica(processArray(huePerFrame));
+            musica(processArray(saturationPerFrame));
+            musica(processArray(brightnessPerFrame));
             bpm.textContent = `BPM: ${(processArray(huePerFrame).length + processArray(saturationPerFrame).length +processArray(brightnessPerFrame).length)/3}`;
 
         });
