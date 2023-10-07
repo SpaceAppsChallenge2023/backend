@@ -10,12 +10,15 @@ const promS = document.getElementById('promS');
 const promB = document.getElementById('promB');
 const bpm = document.getElementById('bpm');
 
+// Arrays to store HSB values per frame, frames counter, and animation frame request ID
 const huePerFrame = [];
 const saturationPerFrame = [];
 const brightnessPerFrame = [];
 const frames = [];
 let counter = 0;
+let requestID;
 
+// Function to calculate deviation of an array
 function calculateDeviation(arr) {
     const mean = arr.reduce((sum, val) => sum + val, 0) / arr.length;
     const squaredDifferences = arr.map((val) => Math.pow(val - mean, 2));
@@ -23,6 +26,7 @@ function calculateDeviation(arr) {
     return Math.sqrt(variance);
 }
 
+// Function to find the farthest element in an array from the mean
 function findFarthestElement(arr) {
     const mean = arr.reduce((sum, val) => sum + val, 0) / arr.length;
     let farthestIndex = 0;
@@ -35,10 +39,10 @@ function findFarthestElement(arr) {
             farthestIndex = i;
         }
     }
-
     return arr[farthestIndex];
 }
 
+// Function to process an array and return values with deviations > 0.2
 function processArray(inputArray) {
     const resultArray = [];
     const segmentSize = 30;
@@ -47,33 +51,12 @@ function processArray(inputArray) {
         const segment = inputArray.slice(i, i + segmentSize);
         const deviation = calculateDeviation(segment);
 
-        if (deviation > 0.2) { // 20% deviation
+        if (deviation > 0.2) { 
             const farthestElement = findFarthestElement(segment);
             resultArray.push(farthestElement);
         }
     }
-
     return resultArray;
-}
-
-function musica(spikes) {
-    const smallest = Math.min(...spikes);
-    const biggest = Math.max(...spikes);
-    intervalo = (biggest-smallest)/spikes.length;
-    // Create an AudioContext
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    // Create an oscillator node
-    const oscillator = audioContext.createOscillator();
-    // Set the frequency based on the interval value (adjust this as needed)
-    const frequency = 440 + intervalo * 100; // Example: Adjust frequency based on interval
-    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-    // Connect the oscillator to the audio output
-    oscillator.connect(audioContext.destination);
-    // Start the oscillator to play audio
-    oscillator.start();
-    // Stop the oscillator after a short duration (adjust as needed)
-    oscillator.stop(audioContext.currentTime + 0.1); // Example: Stop after 0.1 seconds
-    console.log(`Playing audio with interval: ${intervalo}`);
 }
 
 // Function to process each video frame
@@ -83,14 +66,11 @@ function processFrame() {
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Get pixel data from the canvas
+    // Extracting and calculating average HSB values of frame, and adding to arrays
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    let totalHue = 0, totalSaturation = 0, totalBrightness = 0;
 
-    // Calculate the average HSB values of the frame
-    let totalHue = 0;
-    let totalSaturation = 0;
-    let totalBrightness = 0;
-
+    // ... (Calculations for totalHue, totalSaturation, totalBrightness here, refer to original code for details)
     for (let i = 0; i < imageData.length; i += 4) {
         // Extract RGB values
         const r = imageData[i] / 255;
@@ -130,42 +110,152 @@ function processFrame() {
     const averageSaturation = totalSaturation / (imageData.length / 4);
     const averageBrightness = totalBrightness / (imageData.length / 4);
 
-    // Add the average HSB values to the arrays
-    huePerFrame.push(averageHue);
-    saturationPerFrame.push(averageSaturation);
-    brightnessPerFrame.push(averageBrightness);
+    huePerFrame.push(Math.round((averageHue + Number.EPSILON) * 100) / 100);
+    saturationPerFrame.push(Math.round((averageSaturation + Number.EPSILON) * 100) / 100);
+    brightnessPerFrame.push(Math.round((averageBrightness + Number.EPSILON) * 100) / 100);
 
-    // Provide feedback based on HSB values
+    // Update feedback and request the next frame
     feedbackH.textContent = `Average Hue: ${averageHue.toFixed(2)}°`;
     feedbackS.textContent = `Average Saturation: ${averageSaturation.toFixed(2)}`;
     feedbackB.textContent = `Average Brightness: ${averageBrightness.toFixed(2)}`;
 
-    // Request the next frame
-    requestAnimationFrame(processFrame);
+    updateCharts();
+    requestID = requestAnimationFrame(processFrame);
 }
 
+// Event listener for video end
+video.addEventListener('ended', () => {
+    cancelAnimationFrame(requestID);
+    console.log(frames);
+    console.log(huePerFrame);
+    console.log(saturationPerFrame);
+    console.log(brightnessPerFrame);
+   
+    const sumSpikes = Math.round((processArray(huePerFrame).length + processArray(saturationPerFrame).length +processArray(brightnessPerFrame).length));
+    const durationPerMin = (video.duration / 60) + 1;
+    const bpmVar = Math.round(sumSpikes / durationPerMin);
+    console.log(bpmVar);
+
+    promH.textContent = `Total Average Hue: ${Math.round(((huePerFrame.reduce((a, b) => a + b, 0) / huePerFrame.length) + Number.EPSILON) * 100) / 100}`;
+    promS.textContent = `Total Average Saturation: ${Math.round(((saturationPerFrame.reduce((a, b) => a + b, 0) / saturationPerFrame.length) + Number.EPSILON) * 100) / 100}`;
+    promB.textContent = `Total Average Brightness: ${Math.round(((brightnessPerFrame.reduce((a, b) => a + b, 0) / brightnessPerFrame.length) + Number.EPSILON) * 100) / 100}`;
+    bpm.textContent = `BPM: ${bpmVar}`;
+
+    fileInput.removeEventListener('change', handleFileInputChange);
+});
+
 // Event listener for file input change
-fileInput.addEventListener('change', () => {
+fileInput.addEventListener('change', handleFileInputChange);
+
+function handleFileInputChange() {
     const selectedFile = fileInput.files[0];
     if (selectedFile) {
-        // Load the selected video file into the video element
         video.src = URL.createObjectURL(selectedFile);
         video.addEventListener('loadedmetadata', () => {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             video.play();
-            requestAnimationFrame(processFrame);
+            requestID = requestAnimationFrame(processFrame);
         });
-        video.addEventListener('ended', () => {
-            // Video has ended, calculate the average of HSB values
-            promH.textContent = `Average Hue: ${huePerFrame.reduce((a, b) => a + b, 0) / huePerFrame.length}`;
-            promS.textContent = `Average Saturation: ${saturationPerFrame.reduce((a, b) => a + b, 0) / saturationPerFrame.length}`;
-            promB.textContent = `Average Brightness: ${brightnessPerFrame.reduce((a, b) => a + b, 0) / brightnessPerFrame.length}`;
-            musica(processArray(huePerFrame));
-            musica(processArray(saturationPerFrame));
-            musica(processArray(brightnessPerFrame));
-            bpm.textContent = `BPM: ${(processArray(huePerFrame).length + processArray(saturationPerFrame).length +processArray(brightnessPerFrame).length)/3}`;
+    }
+}
 
-        });
+// Function to update the charts
+function updateCharts() {
+    // ... (Your chart update logic goes here)
+    hueChart.update();
+    saturationChart.update();
+    brightnessChart.update();
+}
+
+const hueChart = new Chart(document.getElementById('hueChart').getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: frames,
+        datasets: [{
+            label: 'Hue',
+            data: huePerFrame,
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1,
+            fill: false,
+        }]
+    },
+    options: {
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Frame Number',
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Hue (°)',
+                }
+            }
+        }
+    }
+});
+
+// Create a line chart for Saturation
+const saturationChart = new Chart(document.getElementById('saturationChart').getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: frames,
+        datasets: [{
+            label: 'Saturation',
+            data: saturationPerFrame,
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 1,
+            fill: false,
+        }]
+    },
+    options: {
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Frame Number',
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Saturation',
+                }
+            }
+        }
+    }
+});
+
+// Create a line chart for Brightness
+const brightnessChart = new Chart(document.getElementById('brightnessChart').getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: frames,
+        datasets: [{
+            label: 'Brightness',
+            data: brightnessPerFrame,
+            borderColor: 'rgba(255, 206, 86, 1)',
+            borderWidth: 1,
+            fill: false,
+        }]
+    },
+    options: {
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Frame Number',
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Brightness',
+                }
+            }
+        }
     }
 });
