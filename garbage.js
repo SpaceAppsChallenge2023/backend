@@ -1,18 +1,3 @@
-
-Plotly.plot( TESTER1, [{
-    frames,
-    huePerFrame }], { 
-    margin: { t: 0 } }, {showSendToCloud:true} );
-
-Plotly.plot( TESTER2, [{
-    frames,
-    saturationPerFrame }], { 
-    margin: { t: 0 } }, {showSendToCloud:true} );
-
-Plotly.plot( TESTER3, [{
-    frames,
-    brightnessPerFrame }], { 
-    margin: { t: 0 } }, {showSendToCloud:true} );
-
-/* Current Plotly.js version */
-console.log( Plotly.BUILD );
+promH.textContent = `Average Hue: ${huePerFrame.reduce((a, b) => a + b, 0) / huePerFrame.length}`;
+promS.textContent = `Average Saturation: ${saturationPerFrame.reduce((a, b) => a + b, 0) / saturationPerFrame.length}`;
+promB.textContent = `Average Brightness: ${brightnessPerFrame.reduce((a, b) => a + b, 0) / brightnessPerFrame.length}`;

@@ -5,6 +5,10 @@ const ctx = canvas.getContext('2d');
 const feedbackH = document.getElementById('feedbackH');
 const feedbackS = document.getElementById('feedbackS');
 const feedbackB = document.getElementById('feedbackB');
+const promH = document.getElementById('promH');
+const promS = document.getElementById('promS');
+const promB = document.getElementById('promB');
+const bpm = document.getElementById('bpm');
 
 const huePerFrame = [];
 const saturationPerFrame = [];
@@ -12,9 +16,49 @@ const brightnessPerFrame = [];
 const frames = [];
 let counter = 0;
 
+function calculateDeviation(arr) {
+    const mean = arr.reduce((sum, val) => sum + val, 0) / arr.length;
+    const squaredDifferences = arr.map((val) => Math.pow(val - mean, 2));
+    const variance = squaredDifferences.reduce((sum, val) => sum + val, 0) / arr.length;
+    return Math.sqrt(variance);
+}
+
+function findFarthestElement(arr) {
+    const mean = arr.reduce((sum, val) => sum + val, 0) / arr.length;
+    let farthestIndex = 0;
+    let farthestDistance = Math.abs(arr[0] - mean);
+
+    for (let i = 1; i < arr.length; i++) {
+        const distance = Math.abs(arr[i] - mean);
+        if (distance > farthestDistance) {
+            farthestDistance = distance;
+            farthestIndex = i;
+        }
+    }
+
+    return arr[farthestIndex];
+}
+
+function processArray(inputArray) {
+    const resultArray = [];
+    const segmentSize = 30;
+
+    for (let i = 0; i < inputArray.length; i += segmentSize) {
+        const segment = inputArray.slice(i, i + segmentSize);
+        const deviation = calculateDeviation(segment);
+
+        if (deviation > 0.2) { // 20% deviation
+            const farthestElement = findFarthestElement(segment);
+            resultArray.push(farthestElement);
+        }
+    }
+
+    return resultArray;
+}
+
 // Function to process each video frame
 function processFrame() {
-    counter++
+    counter++;
     frames.push(counter);
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -91,6 +135,14 @@ fileInput.addEventListener('change', () => {
             canvas.height = video.videoHeight;
             video.play();
             requestAnimationFrame(processFrame);
+        });
+        video.addEventListener('ended', () => {
+            // Video has ended, calculate the average of HSB values
+            promH.textContent = `Average Hue: ${huePerFrame.reduce((a, b) => a + b, 0) / huePerFrame.length}`;
+            promS.textContent = `Average Saturation: ${saturationPerFrame.reduce((a, b) => a + b, 0) / saturationPerFrame.length}`;
+            promB.textContent = `Average Brightness: ${brightnessPerFrame.reduce((a, b) => a + b, 0) / brightnessPerFrame.length}`;
+            bpm.textContent = `BPM: ${(processArray(huePerFrame).length + processArray(saturationPerFrame).length +processArray(brightnessPerFrame).length)/3}`;
+
         });
     }
 });
