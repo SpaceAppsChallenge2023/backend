@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Analysis</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+</head>
+<body>
+    <input type="file" id="fileInput">
+    <video id="video" width="640" height="480" controls></video>
+    <canvas id="canvas" style="display: none;"></canvas>
+    <div id="feedbackH"></div>
+    <div id="feedbackS"></div>
+    <div id="feedbackB"></div>
+    <canvas id="hueChart" width="400" height="200"></canvas>
+    <canvas id="saturationChart" width="400" height="200"></canvas>
+    <canvas id="brightnessChart" width="400" height="200"></canvas>
+    <script src="script.js"></script>
+</body>
+</html>
