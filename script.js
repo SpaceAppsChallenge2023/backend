@@ -33,21 +33,34 @@ function calculateDeviation(arr) {
     return Math.sqrt(variance);
 }
 
-// Function to find the farthest element in an array from the mean
-function findFarthestElement(arr) {
-    const mean = arr.reduce((sum, val) => sum + val, 0) / arr.length;
-    let farthestIndex = 0;
-    let farthestDistance = Math.abs(arr[0] - mean);
+// Function to find the farthest 'n' elements from a segment
+function findFarthestElements(segment, n) {
+    const farthestElements = [];
+    
+    for (let i = 0; i < n; i++) {
+        let farthestElement = null;
+        let maxDistance = -1;
 
-    for (let i = 1; i < arr.length; i++) {
-        const distance = Math.abs(arr[i] - mean);
-        if (distance > farthestDistance) {
-            farthestDistance = distance;
-            farthestIndex = i;
+        for (let j = 0; j < segment.length; j++) {
+            const distance = calculateDistance(segment[i], segment[j]);
+
+            if (distance > maxDistance) {
+                maxDistance = distance;
+                farthestElement = segment[j];
+            }
         }
+
+        farthestElements.push(farthestElement);
     }
-    return arr[farthestIndex];
+
+    return farthestElements;
 }
+
+// Function to calculate distance (you can replace this with your own distance calculation logic)
+function calculateDistance(a, b) {
+    return Math.abs(a - b);
+}
+
 
 // Function to process an array and return values with deviations > 0.2
 function processArray(inputArray) {
@@ -59,8 +72,8 @@ function processArray(inputArray) {
         const deviation = calculateDeviation(segment);
 
         if (deviation > 0.2) { 
-            const farthestElement = findFarthestElement(segment);
-            resultArray.push(farthestElement);
+            const farthestElement = findFarthestElements(segment, 5);
+            resultArray.push(...farthestElement);
         }
     }
     return resultArray;
@@ -146,9 +159,9 @@ video.addEventListener('ended', () => {
     const durationPerMin = (duration / 60) + 1;
     bpmVar = Math.round(sumSpikes / durationPerMin);
 
-    console.log(frames);
-    console.log(huePerFrame);
-    console.log(saturationPerFrame);
+    console.log(spikeHue);
+    console.log(spikeSaturation);
+    console.log(spikeBrightness);
 
     promH.textContent = `Total Average Hue: ${totalAverageHue}`;
     promS.textContent = `Total Average Saturation: ${totalAverageSaturation}`;

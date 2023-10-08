@@ -5,8 +5,11 @@ const chords = [];
 const chordsToUse = [];
 const notes = [];
 const notesToUse = [];
+const rhythms = [];
+const rhythmToUse = [];
 let patternChord = "";
 let patternNote = "";
+let patternRhythm = "";
 
 function musicCreator(frames, huePerFrame, saturationPerFrame, brightnessPerFrame, totalAverageHue, totalAverageSaturation, totalAverageBrightness, spikeHue, spikeSaturation, spikeBrightness, duration, bpmVar) {
     const chords = [];
@@ -16,17 +19,17 @@ function musicCreator(frames, huePerFrame, saturationPerFrame, brightnessPerFram
 
     // Scale
     if (totalAverageHue > 180) {
-        chords.push('CM', 'Dm', 'Em', 'FM', 'GM', 'Am', 'Bo');
+        chords.push('CM', 'Dm', 'Em', 'FM', 'GM', 'Am', 'Bm');
         notes.push('C3', 'D3', 'E3', 'F3', 'G3', 'A3', 'B3', 'C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4');
     } else {
-        chords.push('DbM', 'Ebm', 'Fm', 'GbM', 'AbM', 'Bbm', 'Co');
+        chords.push('DbM', 'Ebm', 'Fm', 'GbM', 'AbM', 'Bbm', 'Cm');
         notes.push('Db3', 'Eb3', 'F3', 'Gb3', 'Ab3', 'Bb3', 'C4', 'Db4', 'Eb4', 'F4', 'Gb4', 'Ab4', 'Bb4','C5');
     }
 
     // Chords
     const pulsesPerTime = Math.round(((frames.length / duration) * 60) / bpmVar / 4);
-
     let counterSpike = 0;
+    let checkForUpperThreshold = true;
 
     for (let i = 0; i < frames.length; i += pulsesPerTime) {
         value = brightnessPerFrame[i];
@@ -58,22 +61,27 @@ function musicCreator(frames, huePerFrame, saturationPerFrame, brightnessPerFram
                 break;
         }
 
-        if (i < brightnessPerFrame.length - 1) {  // Evitar salir del array
-            if (brightnessPerFrame[i] > spikeBrightness[counterSpike]) {
-                patternChord += 'x';
-                counterSpike = Math.min(counterSpike + 1, spikeBrightness.length - 1);  // No superar la longitud de spikeBrightness
-            } else {
-                patternChord += '_';
-            }
+        if (checkForUpperThreshold && (value >= spikeBrightness[counterSpike] - 12)) {
+            (Math.random() > 0.9) ? patternChord += 'x' : patternChord += '_';
+            checkForUpperThreshold = false;  // alternar el tipo de umbral que estamos buscando
+        } else if (!checkForUpperThreshold && (value <= spikeBrightness[counterSpike] + 12)) {
+            (Math.random() > 0.9) ? patternChord += 'x' : patternChord += '_';
+            checkForUpperThreshold = true;  // alternar el tipo de umbral que estamos buscando
+        } else {
+            (Math.random() > 0.9) ? patternChord += 'x' : patternChord += '_';
+        }
+
+        if (patternChord.charAt(patternChord.length-1) === 'x' && counterSpike < spikeBrightness.length - 1) {
+            counterSpike++;
         }
     }
 
     // Notes
     counterSpike = 0;
+    checkForUpperThreshold = true;
 
     for (let i = 0; i < frames.length; i += pulsesPerTime) {
         value = saturationPerFrame[i];
-        console.log(value);
 
         switch (true) {
             case value >= 0 && value <= 7:
@@ -123,23 +131,54 @@ function musicCreator(frames, huePerFrame, saturationPerFrame, brightnessPerFram
                 break;
         }
 
-        if (i < saturationPerFrame.length - 1) {  // Evitar salir del array
-            if (saturationPerFrame[i] > spikeSaturation[counterSpike]) {
-                patternNote += 'x';
-                counterSpike = Math.min(counterSpike + 1, spikeSaturation.length - 1);  // No superar la longitud de spikeBrightness
-                console.log("Spike");
-            } else {
-                patternNote += '_';
-                console.log("Spike");
-            }
+        if (checkForUpperThreshold && (value >= spikeSaturation[counterSpike] - 37.58)) {
+            (Math.random() > 0.2) ? patternNote += 'x' : patternNote += '_';
+            checkForUpperThreshold = false;  // alternar el tipo de umbral que estamos buscando
+        } else if (!checkForUpperThreshold && (value <= spikeSaturation[counterSpike] + 37.58)) {
+            (Math.random() > 0.2) ? patternNote += 'x' : patternNote += '_';
+            checkForUpperThreshold = true;  // alternar el tipo de umbral que estamos buscando
+        } else {
+            (Math.random() > 0.9) ? patternNote += 'x' : patternNote += '_';
+        }
+
+        if (patternNote.charAt(patternNote.length-1) === 'x' && counterSpike < spikeSaturation.length - 1) {
+            counterSpike++;
         }
     }
+    
+    // Rhythm
+    counterSpike = 0;
+    checkForUpperThreshold = true;
+
+    for (let i = 0; i < frames.length; i += pulsesPerTime) {
+        value = huePerFrame[i];
+
+        rhythmToUse.push('C3');
+
+        if (checkForUpperThreshold && (value >= spikeHue[counterSpike] - 37.58)) {
+            (Math.random() > 0.2) ? patternRhythm += 'x' : patternRhythm += '_';
+            checkForUpperThreshold = false;  // alternar el tipo de umbral que estamos buscando
+        } else if (!checkForUpperThreshold && (value <= spikeHue[counterSpike] + 37.58)) {
+            (Math.random() > 0.2) ? patternRhythm += 'x' : patternRhythm += '_';
+            checkForUpperThreshold = true;  // alternar el tipo de umbral que estamos buscando
+        } else {
+            (Math.random() > 0.9) ? patternRhythm += 'x' : patternNote += '_';
+        }
+
+        if (patternNote.charAt(patternRhythm.length-1) === 'x' && counterSpike < spikeHue.length - 1) {
+            counterSpike++;
+        }
+    }
+
+    console.log(saturationPerFrame);
+    console.log(spikeSaturation);
 
     console.log(notesToUse);
     console.log(patternNote);
     console.log(chordsToUse);
     console.log(patternChord);
-    console.log(scribble.scale('Db4 major'));
+    console.log(rhythmToUse);
+    console.log(patternRhythm);
 
     const melody = scribble.clip({
         notes: notesToUse,
@@ -154,6 +193,13 @@ function musicCreator(frames, huePerFrame, saturationPerFrame, brightnessPerFram
     });
     
     scribble.midi(chord, 'chord.mid');
+
+    const rhythm = scribble.clip({
+        notes: rhythmToUse,
+        pattern: patternRhythm
+    });
+    
+    scribble.midi(rhythm, 'rhythm.mid');
 }
 
 const { frames, huePerFrame, saturationPerFrame, brightnessPerFrame, totalAverageHue, totalAverageSaturation, totalAverageBrightness, spikeHue, spikeSaturation, spikeBrightness, duration, bpmVar } = data;
