@@ -16,6 +16,13 @@ const saturationPerFrame = [];
 const brightnessPerFrame = [];
 const frames = [];
 let counter = 0;
+let totalAverageHue = 0;
+let totalAverageSaturation = 0;
+let totalAverageBrightness = 0;
+let spikeHue = 0;
+let spikeSaturation = 0;
+let spikeBrightness = 0;
+let bpmVar = 0;
 let requestID;
 
 // Function to calculate deviation of an array
@@ -126,20 +133,45 @@ function processFrame() {
 // Event listener for video end
 video.addEventListener('ended', () => {
     cancelAnimationFrame(requestID);
+
+    totalAverageHue = Math.round(((huePerFrame.reduce((a, b) => a + b, 0) / huePerFrame.length) + Number.EPSILON) * 100) / 100;
+    totalAverageSaturation = Math.round(((saturationPerFrame.reduce((a, b) => a + b, 0) / saturationPerFrame.length) + Number.EPSILON) * 100) / 100;
+    totalAverageBrightness = Math.round(((brightnessPerFrame.reduce((a, b) => a + b, 0) / brightnessPerFrame.length) + Number.EPSILON) * 100) / 100;
+    spikeHue = processArray(huePerFrame);
+    spikeSaturation = processArray(saturationPerFrame);
+    spikeBrightness = processArray(brightnessPerFrame);
+   
+    const sumSpikes = Math.round((spikeHue.length + spikeSaturation.length + spikeBrightness.length));
+    const duration = video.duration;
+    const durationPerMin = (duration / 60) + 1;
+    bpmVar = Math.round(sumSpikes / durationPerMin);
+
     console.log(frames);
     console.log(huePerFrame);
     console.log(saturationPerFrame);
-    console.log(brightnessPerFrame);
-   
-    const sumSpikes = Math.round((processArray(huePerFrame).length + processArray(saturationPerFrame).length +processArray(brightnessPerFrame).length));
-    const durationPerMin = (video.duration / 60) + 1;
-    const bpmVar = Math.round(sumSpikes / durationPerMin);
-    console.log(bpmVar);
 
-    promH.textContent = `Total Average Hue: ${Math.round(((huePerFrame.reduce((a, b) => a + b, 0) / huePerFrame.length) + Number.EPSILON) * 100) / 100}`;
-    promS.textContent = `Total Average Saturation: ${Math.round(((saturationPerFrame.reduce((a, b) => a + b, 0) / saturationPerFrame.length) + Number.EPSILON) * 100) / 100}`;
-    promB.textContent = `Total Average Brightness: ${Math.round(((brightnessPerFrame.reduce((a, b) => a + b, 0) / brightnessPerFrame.length) + Number.EPSILON) * 100) / 100}`;
+    promH.textContent = `Total Average Hue: ${totalAverageHue}`;
+    promS.textContent = `Total Average Saturation: ${totalAverageSaturation}`;
+    promB.textContent = `Total Average Brightness: ${totalAverageBrightness}`;
     bpm.textContent = `BPM: ${bpmVar}`;
+
+    const videoAnalysisEvent = new CustomEvent('videoAnalysisCompleted', {
+        detail: {
+            frames,
+            huePerFrame,
+            saturationPerFrame,
+            brightnessPerFrame,
+            totalAverageHue,
+            totalAverageSaturation,
+            totalAverageBrightness,
+            spikeHue,
+            spikeSaturation,
+            spikeBrightness,
+            duration,
+            bpmVar
+        }
+    });
+    document.dispatchEvent(videoAnalysisEvent);
 
     fileInput.removeEventListener('change', handleFileInputChange);
 });
