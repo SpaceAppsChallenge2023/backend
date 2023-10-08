@@ -28,22 +28,22 @@ function musicCreator(frames, huePerFrame, saturationPerFrame, brightnessPerFram
         value = brightnessPerFrame[i];
 
         switch (true) {
-            case value >= 0 && value <= 13:
+            case value >= 0 && value <= 14:
                 chordsToUse.push(chords[0]);
                 break;
-            case value >= 14 && value <= 27:
+            case value >= 14 && value <= 28:
                 chordsToUse.push(chords[1]);
                 break;
-            case value >= 28 && value <= 41:
+            case value >= 28 && value <= 42:
                 chordsToUse.push(chords[2]);
                 break;
-            case value >= 42 && value <= 55:
+            case value >= 42 && value <= 56:
                 chordsToUse.push(chords[3]);
                 break;
-            case value >= 56 && value <= 69:
+            case value >= 56 && value <= 70:
                 chordsToUse.push(chords[4]);
                 break;
-            case value >= 70 && value <= 83:
+            case value >= 70 && value <= 84:
                 chordsToUse.push(chords[5]);
                 break;
             case value >= 84 && value <= 100:
@@ -65,49 +65,50 @@ function musicCreator(frames, huePerFrame, saturationPerFrame, brightnessPerFram
     }
 
     // Notes
-    counterSpike = 0
+    counterSpike = 0;
 
     for (let i = 0; i < frames.length; i += pulsesPerTime) {
         value = saturationPerFrame[i];
+        console.log(value);
 
         switch (true) {
-            case value >= 0 && value <= 6:
+            case value >= 0 && value <= 7:
                 notesToUse.push(notes[0]);
                 break;
-            case value >= 7 && value <= 13:
+            case value >= 7 && value <= 14:
                 notesToUse.push(notes[1]);
                 break;
-            case value >= 14 && value <= 20:
+            case value >= 14 && value <= 21:
                 notesToUse.push(notes[2]);
                 break;
-            case value >= 21 && value <= 27:
+            case value >= 21 && value <= 28:
                 notesToUse.push(notes[3]);
                 break;
-            case value >= 28 && value <= 34:
+            case value >= 28 && value <= 35:
                 notesToUse.push(notes[4]);
                 break;
-            case value >= 35 && value <= 41:
+            case value >= 35 && value <= 42:
                 notesToUse.push(notes[5]);
                 break;
-            case value >= 42 && value <= 48:
+            case value >= 42 && value <= 49:
                 notesToUse.push(notes[6]);
                 break;
-            case value >= 49 && value <= 55:
+            case value >= 49 && value <= 56:
                 notesToUse.push(notes[7]);
                 break;
-            case value >= 56 && value <= 62:
+            case value >= 56 && value <= 63:
                 notesToUse.push(notes[8]);
                 break;
-            case value >= 63 && value <= 69:
+            case value >= 63 && value <= 70:
                 notesToUse.push(notes[9]);
                 break;
-            case value >= 70 && value <= 76:
+            case value >= 70 && value <= 77:
                 notesToUse.push(notes[10]);
                 break;
-            case value >= 77 && value <= 83:
+            case value >= 77 && value <= 84:
                 notesToUse.push(notes[11]);
                 break;
-            case value >= 84 && value <= 90:
+            case value >= 84 && value <= 91:
                 notesToUse.push(notes[12]);
                 break;
             case value >= 91 && value <= 100:
@@ -122,15 +123,17 @@ function musicCreator(frames, huePerFrame, saturationPerFrame, brightnessPerFram
             if (saturationPerFrame[i] > spikeSaturation[counterSpike]) {
                 patternNote += 'x';
                 counterSpike = Math.min(counterSpike + 1, spikeSaturation.length - 1);  // No superar la longitud de spikeBrightness
+                console.log("Spike");
             } else {
                 patternNote += '_';
+                console.log("Spike");
             }
         }
     }
 
-
-    console.log(notesToUse);
-    console.log(patternNote);
+    console.log(notesToUse.length);
+    console.log(patternNote.length);
+    console.log(notesToUse, patternNote);
 }
 
 document.addEventListener('videoAnalysisCompleted', (event) => {
@@ -147,6 +150,5 @@ document.addEventListener('videoAnalysisCompleted', (event) => {
     document.getElementById('feedbackH').innerHTML += `<br>Sound.js - Total Hue: ${totalAverageHue}`;
 
     musicCreator(frames, huePerFrame, saturationPerFrame, brightnessPerFrame, totalAverageHue, totalAverageSaturation, totalAverageBrightness, spikeHue, spikeSaturation, spikeBrightness, duration, bpmVar);
-
 });
 
