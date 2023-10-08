@@ -176,6 +176,34 @@ video.addEventListener('ended', () => {
     fileInput.removeEventListener('change', handleFileInputChange);
 });
 
+document.addEventListener('videoAnalysisCompleted', () => {
+    const duration = video.duration;
+    const analysisData = {
+        frames: frames,
+        huePerFrame: huePerFrame,
+        saturationPerFrame: saturationPerFrame,
+        brightnessPerFrame: brightnessPerFrame,
+        totalAverageHue: totalAverageHue,
+        totalAverageSaturation: totalAverageSaturation,
+        totalAverageBrightness: totalAverageBrightness,
+        spikeHue: spikeHue,
+        spikeSaturation: spikeSaturation,
+        spikeBrightness: spikeBrightness,
+        duration: duration,
+        bpmVar: bpmVar
+    };
+
+    const jsonData = JSON.stringify(analysisData);
+
+    // Puedes imprimir el JSON en la consola o usarlo según tus necesidades
+    console.log(jsonData);
+
+    localStorage.setItem('jsonData', jsonData);
+
+    // También puedes enviar el JSON a un servidor si es necesario
+    // Puedes usar fetch o alguna otra librería para esto
+});
+
 // Event listener for file input change
 fileInput.addEventListener('change', handleFileInputChange);
 
@@ -291,3 +319,28 @@ const brightnessChart = new Chart(document.getElementById('brightnessChart').get
         }
     }
 });
+
+function exportData() {
+    // Retrieve data from LocalStorage
+    const data = JSON.parse(localStorage.getItem("jsonData"));
+
+    // Create a JSON Blob
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+
+    // Create a temporary URL for the Blob
+    const url = window.URL.createObjectURL(blob);
+
+    // Create a download link
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "userData.json";
+    
+    // Trigger the click event to download
+    a.click();
+
+    // Release the Object URL
+    window.URL.revokeObjectURL(url);
+}
+
+// Attach exportData function to the button click event
+document.getElementById("exportButton").addEventListener("click", exportData);

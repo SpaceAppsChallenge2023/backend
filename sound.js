@@ -1,3 +1,6 @@
+import data from './userData.json' assert { type: 'json' };
+import scribble from 'scribbletune';
+
 const chords = [];
 const chordsToUse = [];
 const notes = [];
@@ -9,14 +12,15 @@ function musicCreator(frames, huePerFrame, saturationPerFrame, brightnessPerFram
     const chords = [];
     const notes = [];
     const chordsToUse = [];
+    let value;
 
     // Scale
     if (totalAverageHue > 180) {
         chords.push('CM', 'Dm', 'Em', 'FM', 'GM', 'Am', 'Bo');
         notes.push('C3', 'D3', 'E3', 'F3', 'G3', 'A3', 'B3', 'C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4');
     } else {
-        chords.push('C_M', 'D_m', 'Fm', 'F_M', 'G_M', 'A_m', 'Co');
-        notes.push('C_3', 'D_3', 'F3', 'F_3', 'G_3', 'A_3', 'C4', 'D_4', 'F4', 'F_4', 'G_4', 'A_4', 'C5');
+        chords.push('DbM', 'Ebm', 'Fm', 'GbM', 'AbM', 'Bbm', 'Co');
+        notes.push('Db3', 'Eb3', 'F3', 'Gb3', 'Ab3', 'Bb3', 'C4', 'Db4', 'Eb4', 'F4', 'Gb4', 'Ab4', 'Bb4','C5');
     }
 
     // Chords
@@ -131,24 +135,27 @@ function musicCreator(frames, huePerFrame, saturationPerFrame, brightnessPerFram
         }
     }
 
-    console.log(notesToUse.length);
-    console.log(patternNote.length);
-    console.log(notesToUse, patternNote);
+    console.log(notesToUse);
+    console.log(patternNote);
+    console.log(chordsToUse);
+    console.log(patternChord);
+    console.log(scribble.scale('Db4 major'));
+
+    const melody = scribble.clip({
+        notes: notesToUse,
+        pattern: patternNote
+    });
+    
+    scribble.midi(melody, 'melody.mid');
+
+    const chord = scribble.clip({
+        notes: chordsToUse,
+        pattern: patternChord
+    });
+    
+    scribble.midi(chord, 'chord.mid');
 }
 
-document.addEventListener('videoAnalysisCompleted', (event) => {
-    const { frames, huePerFrame, saturationPerFrame, brightnessPerFrame, totalAverageHue, totalAverageSaturation, totalAverageBrightness, spikeHue, spikeSaturation, spikeBrightness, duration, bpmVar } = event.detail;
-    // Utilizar las variables para realizar operaciones en sound.js
-    console.log('Video Analysis Completed!');
-    console.log(`Total Hue: ${totalAverageHue}`);
-    console.log(`Total Saturation: ${totalAverageSaturation}`);
-    console.log(`Total Brightness: ${totalAverageBrightness}`);
-    console.log(`BPM: ${bpmVar}`);
-    console.log(`${duration}`);
+const { frames, huePerFrame, saturationPerFrame, brightnessPerFrame, totalAverageHue, totalAverageSaturation, totalAverageBrightness, spikeHue, spikeSaturation, spikeBrightness, duration, bpmVar } = data;
 
-    // Si quieres modificar algo en el HTML para demostrar que sound.js se ha ejecutado:
-    document.getElementById('feedbackH').innerHTML += `<br>Sound.js - Total Hue: ${totalAverageHue}`;
-
-    musicCreator(frames, huePerFrame, saturationPerFrame, brightnessPerFrame, totalAverageHue, totalAverageSaturation, totalAverageBrightness, spikeHue, spikeSaturation, spikeBrightness, duration, bpmVar);
-});
-
+musicCreator(frames, huePerFrame, saturationPerFrame, brightnessPerFrame, totalAverageHue, totalAverageSaturation, totalAverageBrightness, spikeHue, spikeSaturation, spikeBrightness, duration, bpmVar);
