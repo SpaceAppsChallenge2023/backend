@@ -198,7 +198,6 @@ function musicCreator(frames, huePerFrame, saturationPerFrame, brightnessPerFram
         notes: rhythmToUse,
         pattern: patternRhythm
     });
-    
     scribble.midi(rhythm, 'rhythm.mid');
 }
 
